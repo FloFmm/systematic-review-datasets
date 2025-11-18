@@ -34,7 +34,7 @@ def get_request(url: str) -> PlaywrightResponse:
         browser = p.firefox.launch(headless=True)
         context = browser.new_context()
         page = context.new_page()
-        page.goto(url, wait_until="networkidle")  # waits for network to settle
+        page.goto(url, wait_until="networkidle", timeout=60000)  # waits for network to settle
 
         html = page.content()
         browser.close()
