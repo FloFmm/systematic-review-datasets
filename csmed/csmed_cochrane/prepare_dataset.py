@@ -22,8 +22,8 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # get the cookie from your browser and paste it into this file
-with open("../data/cookie.txt", "r", encoding="utf-8") as f:
-    cookie = f.read().strip()
+# with open("../data/cookie.txt", "r", encoding="utf-8") as f:
+#     cookie = f.read().strip()
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:145.0)",# Gecko/20100101 Firefox/145.0 Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36",
