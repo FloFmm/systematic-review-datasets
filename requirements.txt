@@ -8,7 +8,7 @@ bioc==2.0.post4
 datasets>=2.8.0,<3.0.0
 openpyxl>=3.0.9,<3.1.0
 setuptools>=67.8.0
-pystemmer==3.0.0
+pystemmer==2.0.1
 -e .
 
 # experiments
@@ -17,4 +17,3 @@ numba~=0.57.0
 retriv~=0.2.3
 torch~=2.1.0
 playwright
-pystemmer==3.0.0
