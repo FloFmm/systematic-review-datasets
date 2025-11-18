@@ -9,8 +9,8 @@ from numba import njit
 from retriv import SparseRetriever, DenseRetriever
 
 from csmed.csmed.csmed_cochrane import CSMeDCochrane
-# from csmed.experiments.measures import evaluate_runs
-import datasets
+from csmed.experiments.measures import evaluate_runs
+
 # Constants
 SEED = 42
 USE_GPU = True

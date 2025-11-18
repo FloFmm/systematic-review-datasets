@@ -39,6 +39,10 @@ def _get_versions(review_id: str) -> dict[int, str]:
         return {}
 
     version_history = soup.find("section", {"class": "versionHistory"})
+
+    if not version_history:
+        return {}
+
     versions = [
         version_row.findAll("td")[4].text.strip()
         for version_row in version_history.find("tbody").findAll("tr", recursive=False)
