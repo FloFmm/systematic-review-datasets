@@ -7,7 +7,7 @@ bibtexparser~=1.4.0
 bioc==2.0.post4
 datasets>=2.8.0,<3.0.0
 openpyxl>=3.0.9,<3.1.0
-setuptools~=67.8.0
+setuptools#~=67.8.0
 pystemmer==3.0.0
 -e .
 
