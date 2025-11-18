@@ -681,7 +681,7 @@ class CSMeDCochrane:
                 details_file = (
                     f"{path}/{dataset_name}/{review_name}/review_details.json"
                 )
-
+                print(os.path.abspath("../systematic-review-datasets/data/huggingface/datasets"))
                 _dataset = datasets.load_dataset(
                     path=f"{base_path}/../datasets/{dataset_name}/{dataset_name}.py",
                     name=f"{dataset_name}_{review_name}_bigbio_text",
