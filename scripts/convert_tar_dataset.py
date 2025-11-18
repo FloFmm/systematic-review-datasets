@@ -11,10 +11,10 @@ from csmed.csmed_cochrane.prepare_dataset import prepare_dataset
 if __name__ == "__main__":
     TAR_REPOSITORY_PATH = "../../tar/"
 
-    dataset_names = ["2017-TAR", "2018-TAR", "2019-TAR"]
+    dataset_names = ["2019-TAR", "2017-TAR", "2018-TAR"]
     review_types = ["Intervention", "Prognosis", "Qualitative", "DTA"]
     dataset_splits = ["Training", "Testing"]
-
+    
     for dataset_name in dataset_names:
         added_reviews = []
         index_id = 1
@@ -39,14 +39,18 @@ if __name__ == "__main__":
                 reviews_path = f"{TAR_REPOSITORY_PATH}/{dataset_name}/{dataset_split.lower()}/extracted_data/"
 
             if not os.path.exists(reviews_path):
+                print(f"path does not exist {reviews_path}")
                 continue
 
-            print(f"Processing {dataset_name} {review_type} {dataset_split}")
             for review_file in tqdm(os.listdir(reviews_path)):
                 if dataset_name == "2017-TAR" and not review_file.endswith(".pids"):
+                    print(f"skipped {review_file}")
                     continue
-
+                
                 review_id = review_file.split(".")[0]
+                if os.path.exists(os.path.join(OUTPUT_DATA_PATH, review_id, "review_details.json")):
+                    print(f"Skipping {review_file} since review_details.json already exists")
+                    continue
 
                 tar_dataset = prepare_dataset(
                     review_id=review_id, output_data_path=OUTPUT_DATA_PATH
@@ -74,5 +78,6 @@ if __name__ == "__main__":
                 }
                 with open(f"{OUTPUT_DATA_PATH}/data_index.json", "w") as f:
                     json.dump(final_data, f, indent=2)
+                    
 
     print("Done!")

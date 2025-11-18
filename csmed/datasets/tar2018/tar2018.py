@@ -95,6 +95,7 @@ def prepare_dataset(
     )
 
     print("PubMed data is being downloaded. This may take a while for the first time.")
+    print("number of reviews:", len(qrels_df["review_id"].unique()))
     for review_id in qrels_df["review_id"].unique():
         review_df = qrels_df[qrels_df["review_id"] == review_id]
         print(f"{review_id=}, {len(review_df)=}")

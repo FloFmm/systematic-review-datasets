@@ -199,6 +199,7 @@ def prepare_dataset(
             for review_id in qrels_df["review_id"].unique():
                 review_df = qrels_df[qrels_df["review_id"] == review_id]
                 print(f"{review_id=}, {len(review_df)=}")
+                print(f"{output_folder}/{review_id}.csv")
                 review_df = get_from_pubmed(review_df)
                 review_df.to_csv(f"{output_folder}/{review_id}.csv", index=False)
                 print(f"Prepared review size: {len(review_df)}")

@@ -3,6 +3,8 @@ import logging
 import re
 import time
 from typing import Optional, Union
+from playwright.sync_api import sync_playwright
+from bs4 import BeautifulSoup
 
 import pandas as pd
 import requests
@@ -12,6 +14,33 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
+class PlaywrightResponse:
+    """Minimal response object to mimic requests.Response"""
+    def __init__(self, status_code: int, content: bytes):
+        self.status_code = status_code
+        self.content = content
+    
+    @property
+    def text(self) -> str:
+        return self.content.decode("utf-8")
+
+def get_request(url: str) -> PlaywrightResponse:
+    """
+    Drop-in replacement for requests.get(url) using Playwright.
+    Returns an object with .status_code and .content like requests.Response.
+    Ignores headers — uses a real browser to bypass Cloudflare.
+    """
+    with sync_playwright() as p:
+        browser = p.firefox.launch(headless=True)
+        context = browser.new_context()
+        page = context.new_page()
+        page.goto(url, wait_until="networkidle")  # waits for network to settle
+
+        html = page.content()
+        browser.close()
+        # Always return status_code 200 if page loaded
+        return PlaywrightResponse(status_code=200, content=html.encode("utf-8"))
+
 def get_safe_text(element) -> str:
     return element.text if element else ""
 
@@ -20,7 +49,7 @@ def get_safe_soup(url: str, headers: dict[str, str]) -> Optional[BeautifulSoup]:
     """Returns a BeautifulSoup object or None. Tries three times and waits 60 seconds between each try."""
     wait_time = 60
     for _ in range(3):
-        r = requests.get(url, headers=headers)
+        r = get_request(url)
         if r.status_code == 200:
             return BeautifulSoup(r.text, "html.parser")
         else:
@@ -30,6 +59,49 @@ def get_safe_soup(url: str, headers: dict[str, str]) -> Optional[BeautifulSoup]:
             )
             time.sleep(wait_time)
 
+
+# def get_safe_soup(url: str, headers: dict[str, str]) -> Optional[BeautifulSoup]:
+#     """
+#     Playwright-based HTML fetcher with retries.
+#     Supports full custom headers.
+#     """
+#     wait_time = 60
+
+#     for attempt in range(3):
+#         try:
+#             with sync_playwright() as p:
+#                 print(f"scraping url {url}")
+#                 browser = p.firefox.launch(headless=True)
+#                 context = browser.new_context()
+#                 # context = browser.new_context(extra_http_headers=headers)
+
+#                 # Playwright requires UA to be set separately
+#                 # if "User-Agent" in headers:
+#                 #     context.set_extra_http_headers({
+#                 #         k: v for k, v in headers.items() if k.lower() != "user-agent"
+#                 #     })
+#                 #     context = browser.new_context(
+#                 #         user_agent=headers["User-Agent"],
+#                 #         extra_http_headers={
+#                 #             k: v for k, v in headers.items() if k.lower() != "user-agent"
+#                 #         }
+#                 #     )
+    
+#                 page = context.new_page()
+#                 page.goto(url)
+
+#                 html = page.content()
+#                 browser.close()
+#                 return BeautifulSoup(html, "html.parser")
+
+#         except Exception as e:
+#             logger.error(
+#                 f"Attempt {attempt+1} failed: {e}. Waiting {wait_time} seconds before retrying."
+#             )
+#             time.sleep(wait_time)
+#             wait_time *= 2
+
+#     return None
 
 def _find_doi(urls: list[str]) -> Optional[str]:
     """searches for DOI in urls"""

@@ -671,23 +671,30 @@ class CSMeDCochrane:
 
         :param base_path: path to the directory where the CSMeDCochrane file is stored
         """
-        path = f"{base_path}/../../../data/external/"
+        path = f"{base_path}/../../data/external/"
         csmed_cochrane_datasets = {"TRAIN": {}, "EVAL": {}}
         for dataset_name in CSMED_COCHRANE_REVIEWS:
-            with open(f"{path}/{dataset_name}/data_index.json") as f:
-                collection_details = json.load(f)
+            # with open(f"{path}/{dataset_name}/data_index.json") as f:
+            #     collection_details = json.load(f)
 
             for review_name in CSMED_COCHRANE_REVIEWS[dataset_name]:
                 details_file = (
                     f"{path}/{dataset_name}/{review_name}/review_details.json"
                 )
-                with open(details_file) as f:
-                    dataset_details = json.load(f)
 
                 _dataset = datasets.load_dataset(
-                    path=f"{base_path}/../{dataset_name}/{dataset_name}.py",
+                    path=f"{base_path}/../datasets/{dataset_name}/{dataset_name}.py",
                     name=f"{dataset_name}_{review_name}_bigbio_text",
+                    cache_dir="../systematic-review-datasets/data/huggingface/datasets"
                 )
+                try:
+                    with open(details_file) as f:
+                        dataset_details = json.load(f)
+                except FileNotFoundError:
+                    print(f"File '{details_file}' does not exist. Skipping.")
+                    continue
+
+                
                 if review_name in TRAIN_REVIEWS:
                     csmed_cochrane_datasets["TRAIN"][review_name] = {
                         "review_name": review_name,

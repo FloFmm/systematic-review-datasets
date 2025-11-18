@@ -14,6 +14,7 @@ from csmed.csmed_cochrane.cochrane_web_parser import (
     parse_search_strategy,
     parse_eligibility_criteria,
     get_safe_soup,
+    get_request
 )
 from csmed.csmed_cochrane.match_references import expand_references_details
 
@@ -25,13 +26,14 @@ with open("../data/cookie.txt", "r", encoding="utf-8") as f:
     cookie = f.read().strip()
 
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36",
-    "Cookie": cookie,
+    "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:145.0)",# Gecko/20100101 Firefox/145.0 Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36",
+    # "Cookie": cookie,
 }
 
 
 def _get_versions(review_id: str) -> dict[int, str]:
     _url = f"https://www.cochranelibrary.com/cdsr/doi/10.1002/14651858.{review_id}/information"
+
     soup: Optional[BeautifulSoup] = get_safe_soup(url=_url, headers=HEADERS)
     if not soup:
         return {}
@@ -54,7 +56,7 @@ def _get_file(url: str, headers: dict[str, str], output_file: str) -> str:
     :return: hash of the file, or empty string if the file could not be downloaded
     """
     try:
-        r = requests.get(url, headers=headers)
+        r = get_request(url)
     except requests.exceptions.TooManyRedirects:
         logger.error(f"Too many redirects for {url}")
         return ""
@@ -81,7 +83,7 @@ def _get_most_recent_available_version(
         cochrane_home = f"https://www.cochranelibrary.com/cdsr/doi/10.1002/14651858.{review_id}.pub{version}"
         cochrane_revman = f"{cochrane_home}/media/CDSR/{review_id}/table_n/{review_id}StatsDataOnly.rm5"
         try:
-            r = requests.get(cochrane_revman, headers=HEADERS)
+            r = get_request(cochrane_revman)
             if r.status_code == 200 and not r.content.decode().startswith(
                 "<!DOCTYPE html>"
             ):
@@ -97,7 +99,7 @@ def _get_cochrane_home_soup(review_url: str) -> BeautifulSoup:
     :param review_url:
     :return: BeautifulSoup object
     """
-    r = requests.get(review_url, headers=HEADERS)
+    r = get_request(review_url)
     soup = BeautifulSoup(r.text, "html.parser")
     return soup
 
@@ -179,28 +181,28 @@ def prepare_dataset(
         cochrane_home = (
             f"https://www.cochranelibrary.com/cdsr/doi/10.1002/14651858.{review_id}"
         )
-        cochrane_pdf = (
-            f"{cochrane_home}/pdf/CDSR/{review_id}/rel0001/{review_id}/{review_id}.pdf"
-        )
+        # cochrane_pdf = (
+        #     f"{cochrane_home}/pdf/CDSR/{review_id}/rel0001/{review_id}/{review_id}.pdf"
+        # )
     else:
         cochrane_home = f"https://www.cochranelibrary.com/cdsr/doi/10.1002/14651858.{review_id}.pub{version}"
-        cochrane_pdf = f"{cochrane_home}/pdf/CDSR/{review_id}/{review_id}.pdf"
+        # cochrane_pdf = f"{cochrane_home}/pdf/CDSR/{review_id}/{review_id}.pdf"
 
     doi = get_review_doi(review_id=review_id, review_version=version)
-    cochrane_revman = (
-        f"{cochrane_home}/media/CDSR/{review_id}/table_n/{review_id}StatsDataOnly.rm5"
-    )
+    # cochrane_revman = (
+    #     f"{cochrane_home}/media/CDSR/{review_id}/table_n/{review_id}StatsDataOnly.rm5"
+    # )
 
     out_path = f"{output_data_path}/{review_id}/"
     if not os.path.exists(out_path):
         os.makedirs(out_path)
 
-    pdf_md5 = _get_file(
-        url=cochrane_pdf, headers=HEADERS, output_file=f"{out_path}/{review_id}.pdf"
-    )
-    revman_md5 = _get_file(
-        url=cochrane_revman, headers=HEADERS, output_file=f"{out_path}/{review_id}.rm5"
-    )
+    # pdf_md5 = _get_file(
+    #     url=cochrane_pdf, headers=HEADERS, output_file=f"{out_path}/{review_id}.pdf"
+    # )
+    # revman_md5 = _get_file(
+    #     url=cochrane_revman, headers=HEADERS, output_file=f"{out_path}/{review_id}.rm5"
+    # )
 
     cochrane_home_soup: Optional[BeautifulSoup] = get_safe_soup(
         url=cochrane_home, headers=HEADERS
@@ -225,49 +227,51 @@ def prepare_dataset(
     else:
         search_strategy = ""
 
-    cochrane_references = f"{cochrane_home}/references"
-    cochrane_references_soup: Optional[BeautifulSoup] = get_safe_soup(
-        url=cochrane_references, headers=HEADERS
-    )
-    df = parse_cochrane_references(soup=cochrane_references_soup)
-    df = expand_references_details(df)
-    df.to_csv(f"{out_path}/references.csv", index=False)
+    # cochrane_references = f"{cochrane_home}/references"
+    # cochrane_references_soup: Optional[BeautifulSoup] = get_safe_soup(
+    #     url=cochrane_references, headers=HEADERS
+    # )
+    # print("parsing cochrane references")
+    # df = parse_cochrane_references(soup=cochrane_references_soup)
+    # print("expanding reference details")
+    # df = expand_references_details(df)
+    # df.to_csv(f"{out_path}/references.csv", index=False)
 
-    n_studies_included = len(
-        df[df["reference_type"] == "included"]["study_id"].unique()
-    )
-    n_references_included = len(df[df["reference_type"] == "included"])
-    unique_references_included = len(
-        df[df["reference_type"] == "included"]["citation"].unique()
-    )
-    unique_references_excluded = len(
-        df[df["reference_type"] == "excluded"]["citation"].unique()
-    )
+    # n_studies_included = len(
+    #     df[df["reference_type"] == "included"]["study_id"].unique()
+    # )
+    # n_references_included = len(df[df["reference_type"] == "included"])
+    # unique_references_included = len(
+    #     df[df["reference_type"] == "included"]["citation"].unique()
+    # )
+    # unique_references_excluded = len(
+    #     df[df["reference_type"] == "excluded"]["citation"].unique()
+    # )
 
-    data_df = parse_data_and_analyses_section(soup=cochrane_references_soup, review_id=review_id)
-    data_df.to_csv(f"{out_path}/data_and_analyses.csv", index=False)
+    # data_df = parse_data_and_analyses_section(soup=cochrane_references_soup, review_id=review_id)
+    # data_df.to_csv(f"{out_path}/data_and_analyses.csv", index=False)
 
-    if not data_df.empty:
-        n_comparisons = len(data_df["comparison_name"].unique())
-        try:
-            n_outcomes = len(data_df["outcome_name"].unique())
-            n_outcomes_and_subgroups = len(data_df)
-            avg_studies_for_outcome = (
-                data_df[
-                    pd.to_numeric(data_df["No. of studies"], errors="coerce").notnull()
-                ]["No. of studies"]
-                .astype(int)
-                .mean()
-            )
-        except (KeyError, ValueError):  # fixme: check other option for DTA reviews
-            n_outcomes = 0
-            n_outcomes_and_subgroups = 0
-            avg_studies_for_outcome = 0
-    else:
-        n_comparisons = 0
-        n_outcomes = 0
-        n_outcomes_and_subgroups = 0
-        avg_studies_for_outcome = 0
+    # if not data_df.empty:
+    #     n_comparisons = len(data_df["comparison_name"].unique())
+    #     try:
+    #         n_outcomes = len(data_df["outcome_name"].unique())
+    #         n_outcomes_and_subgroups = len(data_df)
+    #         avg_studies_for_outcome = (
+    #             data_df[
+    #                 pd.to_numeric(data_df["No. of studies"], errors="coerce").notnull()
+    #             ]["No. of studies"]
+    #             .astype(int)
+    #             .mean()
+    #         )
+    #     except (KeyError, ValueError):  # fixme: check other option for DTA reviews
+    #         n_outcomes = 0
+    #         n_outcomes_and_subgroups = 0
+    #         avg_studies_for_outcome = 0
+    # else:
+    #     n_comparisons = 0
+    #     n_outcomes = 0
+    #     n_outcomes_and_subgroups = 0
+    #     avg_studies_for_outcome = 0
 
     review_details = {
         "title": title,
@@ -288,17 +292,17 @@ def prepare_dataset(
         "source": "Cochrane",
         "versions": versions,
         "url": cochrane_home,
-        "pdf": cochrane_pdf,
-        "pdf_md5": pdf_md5,
-        "revman": cochrane_revman,
-        "revman_md5": revman_md5,
-        "references": cochrane_references,
-        "n_studies_included": n_studies_included,
-        "n_references_included": n_references_included,
-        "unique_references_included": unique_references_included,
-        "unique_references_excluded": unique_references_excluded,
-        "n_comparisons": n_comparisons,
-        "n_outcomes": n_outcomes,
-        "n_outcomes_and_subgroups": n_outcomes_and_subgroups,
-        "avg_studies_for_outcome": avg_studies_for_outcome,
+        "pdf": None,#cochrane_pdf,
+        "pdf_md5": None,#pdf_md5,
+        "revman": None,#cochrane_revman,
+        "revman_md5": None,#revman_md5,
+        "references": None,#cochrane_references,
+        "n_studies_included": None,#n_studies_included,
+        "n_references_included": None,#n_references_included,
+        "unique_references_included": None,#unique_references_included,
+        "unique_references_excluded": None,#unique_references_excluded,
+        "n_comparisons": None,#n_comparisons,
+        "n_outcomes": None,#n_outcomes,
+        "n_outcomes_and_subgroups": None,#n_outcomes_and_subgroups,
+        "avg_studies_for_outcome": None,#avg_studies_for_outcome,
     }

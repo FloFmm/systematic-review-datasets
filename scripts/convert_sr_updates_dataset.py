@@ -26,6 +26,10 @@ if __name__ == "__main__":
     unsuccessful_reviews = []
 
     for cochrane_id in tqdm(sr_updates_reviews):
+        if os.path.exists(os.path.join(OUTPUT_DATA_PATH, cochrane_id, "review_details.json")):
+            print(f"Skipping {cochrane_id} since review_details.json already exists")
+            continue
+
         sr_updates_dataset = prepare_dataset(
             review_id=cochrane_id, output_data_path=OUTPUT_DATA_PATH
         )
