@@ -1,0 +1,7 @@
+prefix=/data/horse/ws/flml293c-master-thesis/systematic-review-datasets/csmed_conda
+includedir=${prefix}/include
+ 
+Name: GLProto
+Description: GL extension headers
+Version: 1.4.17
+Cflags: -I${includedir}
