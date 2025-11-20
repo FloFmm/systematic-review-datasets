@@ -1,7 +1,0 @@
-prefix=/data/horse/ws/flml293c-master-thesis/systematic-review-datasets/csmed_conda
-includedir=${prefix}/include
-
-Name: XwaylandProto
-Description: Xwayland extension headers
-Version: 1.0
-Cflags: -I${includedir}
