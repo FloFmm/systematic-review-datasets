@@ -17,3 +17,7 @@ numba~=0.57.0
 retriv~=0.2.3
 torch~=2.1.0
 playwright
+
+# greedyORDecisionTree
+jsonpickle
+line_profiler
