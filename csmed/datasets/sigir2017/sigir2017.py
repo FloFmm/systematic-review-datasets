@@ -293,11 +293,12 @@ class Sigir2017Dataset(datasets.GeneratorBasedBuilder):
         if self.config.schema == "source":
             features = datasets.Features(
                 {
-                    "review_name": datasets.Value("string"),
+                    "review_id": datasets.Value("string"),
                     "pmid": datasets.Value("string"),
                     "title": datasets.Value("string"),
                     "abstract": datasets.Value("string"),
                     "label": datasets.ClassLabel(names=_CLASS_NAMES),
+                    "mesh_terms": datasets.Sequence(datasets.Value("string")),
                 }
             )
         elif self.config.schema == "bigbio_text":
@@ -377,12 +378,19 @@ class Sigir2017Dataset(datasets.GeneratorBasedBuilder):
             text = f"{title}\n\n{abstract}"
 
             if self.config.schema == "source":
+                import ast
+                mh_value = example.get("MH", [])          # might be int or string
+                try:
+                    mesh_terms = ast.literal_eval(mh_value)  # convert string to Python list
+                except Exception:
+                    mesh_terms = []
                 data = {
-                    "review_name": review_name,
+                    "review_id": review_name,
                     "pmid": pmid,
                     "title": title,
                     "abstract": abstract,
                     "label": label,
+                    "mesh_terms": mesh_terms,
                 }
                 yield str(uid), data
 

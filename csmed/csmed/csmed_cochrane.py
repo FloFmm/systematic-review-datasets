@@ -684,7 +684,7 @@ class CSMeDCochrane:
 
                 _dataset = datasets.load_dataset(
                     path=f"{base_path}/../datasets/{dataset_name}/{dataset_name}.py",
-                    name=f"{dataset_name}_{review_name}_bigbio_text",
+                    name=f"{dataset_name}_{review_name}_source",#bigbio_text",
                     cache_dir="../systematic-review-datasets/data/huggingface/datasets",
                     trust_remote_code = True,
                 )

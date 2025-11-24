@@ -131,11 +131,11 @@ class SrUpdatesDataset(datasets.GeneratorBasedBuilder):
             features = datasets.Features(
                 {
                     "review_id": datasets.Value("string"),
-                    "review_title": datasets.Value("string"),
+                    # "review_title": datasets.Value("string"),
                     "pmid": datasets.Value("string"),
                     "title": datasets.Value("string"),
                     "abstract": datasets.Value("string"),
-                    "mesh_terms": [datasets.Value("string")],
+                    "mesh_terms": datasets.Sequence(datasets.Value("string")),
                     "label": datasets.ClassLabel(names=_CLASS_NAMES),
                 }
             )
@@ -214,7 +214,7 @@ class SrUpdatesDataset(datasets.GeneratorBasedBuilder):
             if self.config.schema == "source":
                 data = {
                     "review_id": example["review_id"],
-                    "review_title": example["review_title"],
+                    # "review_title": example["review_title"],
                     "pmid": example["pmid"],
                     "title": title,
                     "abstract": abstract,
