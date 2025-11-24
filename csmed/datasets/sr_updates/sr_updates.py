@@ -218,7 +218,7 @@ class SrUpdatesDataset(datasets.GeneratorBasedBuilder):
                     "pmid": example["pmid"],
                     "title": title,
                     "abstract": abstract,
-                    "mesh_terms": example["mesh_terms"],
+                    "mesh_terms": example["mesh_terms"] if isinstance(example["mesh_terms"], list) else [],
                     "label": label,
                 }
                 yield str(uid), data

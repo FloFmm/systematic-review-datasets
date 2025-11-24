@@ -163,7 +163,7 @@ def evaluate_model(
     query_type: str,
     total_docs: int,
     qrels_dict: dict[str, dict[str, int]],
-    output_dir: str = "reports/title_and_abstract",
+    output_dir: str = "data/reports/title_and_abstract",
     rankings_base_path: str = "../systematic-review-datasets/data/rankings",
 ):
     """
