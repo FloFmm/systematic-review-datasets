@@ -14,12 +14,12 @@ from typing import List, Dict, Any
 import sys
 
 from csmed.csmed.csmed_cochrane import CSMeDCochrane
-from .measures import evaluate_model
-from .modified_dense_retriever import ModifiedDenseRetriever
+from csmed.experiments.measures import evaluate_model
+from csmed.experiments.modified_dense_retriever import ModifiedDenseRetriever
 from retriv import SparseRetriever
 
 # Constants
-os.environ["RETRIV_BASE_PATH"] = "data/indexes" # has to be down here
+os.environ["RETRIV_BASE_PATH"] = "../systematic-review-datasets/data/indexes" # has to be down here
 SEED = 42
 USE_GPU = True
 QUERY_TYPES =  ["title", "abstract"]#, "query", "criteria"]
@@ -267,7 +267,7 @@ if __name__ == "__main__":
                 query_type=query_type,
                 total_docs=total_docs,
                 qrels_dict=qrels_dict,
-                output_dir = "data/reports/title_and_abstract",
+                output_dir = "../boolean-query-generation/data/reports/title_and_abstract",
                 rankings_base_path = "../systematic-review-datasets/data/rankings"
             )
 
