@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import json
+import os
 from typing import Union
 
 import datasets
@@ -688,11 +689,15 @@ class CSMeDCochrane:
                     cache_dir="../systematic-review-datasets/data/huggingface/datasets",
                     trust_remote_code = True,
                 )
+                if not os.path.exists(details_file):
+                    print(f"File '{details_file}' does not exist. Skipping.")
+                    continue
+                
                 try:
                     with open(details_file) as f:
                         dataset_details = json.load(f)
                 except FileNotFoundError:
-                    print(f"File '{details_file}' does not exist. Skipping.")
+                    print(f"Could not read file '{details_file}'.")
                     continue
 
                 
