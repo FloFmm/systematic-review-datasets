@@ -213,3 +213,93 @@ def evaluate_model(
         json.dump(metrics, f, indent=4)
 
     print(f"✓ Finished {model_name}, wrote: {out_json}")
+
+from collections import defaultdict
+import pandas as pd
+from ranx import Qrels, Run, compare
+
+
+def evaluate_model_by_positive_count(
+    model_name: str,
+    query_type: str,
+    total_docs: int,
+    qrels_dict: dict[str, dict[str, int]],
+    output_dir: str = "data/reports/title_and_abstract",
+    rankings_base_path: str = "../systematic-review-datasets/data/rankings",
+):
+    """
+    Evaluate model performance grouped by number of relevant documents per query.
+    Writes one CSV file:
+        rows    = number of positives
+        columns = evaluation metrics
+    """
+
+    run_dict = load_run_dict_for_model(model_name, query_type, total_docs, rankings_base_path)
+    os.makedirs(output_dir, exist_ok=True)
+
+    RANX_METRICS = [
+        "ndcg", "ndcg@5", "ndcg@10", "ndcg@100",
+        "map", "map@10", "map@100",
+        "recall", "recall@1", "recall@2", "recall@3", "recall@5", "recall@10", "recall@20", "recall@50", "recall@75", "recall@100", 
+        "recall@200", "recall@300", "recall@400", "recall@500", "recall@750", "recall@1000", "recall@1500", "recall@2000",
+        "precision", "precision@10", "precision@50", "precision@100", "precision@1000",
+        "f1", "f1@10", "f1@50", "f1@100",
+        "r-precision",
+        "mrr@100",
+    ]
+
+    # --------------------------------------------------
+    # group queries by number of positives
+    # --------------------------------------------------
+    queries_by_pos_count = defaultdict(list)
+
+    for qid, rels in qrels_dict.items():
+        n_pos = sum(rel > 0 for rel in rels.values())
+        queries_by_pos_count[n_pos].append(qid)
+
+    rows = []
+
+    # --------------------------------------------------
+    # evaluate each group
+    # --------------------------------------------------
+    for n_pos, qids in sorted(queries_by_pos_count.items()):
+        if not qids:
+            continue
+
+        sub_qrels_dict = {qid: qrels_dict[qid] for qid in qids}
+        sub_run_dict = {qid: run_dict[qid] for qid in qids if qid in run_dict}
+
+        if not sub_run_dict:
+            continue
+
+        sub_qrels = Qrels(sub_qrels_dict)
+        sub_run = Run(sub_run_dict, name=model_name)
+
+        report = compare(
+            qrels=sub_qrels,
+            runs=[sub_run],
+            metrics=RANX_METRICS,
+        )
+
+        scores = report.to_dict()[model_name]["scores"]
+
+        row = {
+            "n_positives": n_pos,
+            "n_queries": len(qids),
+        }
+        row.update(scores)
+
+        rows.append(row)
+
+    # --------------------------------------------------
+    # write CSV
+    # --------------------------------------------------
+    out_csv = os.path.join(
+        output_dir,
+        f"{model_name}_{query_type}_docs={total_docs}_by_pos_count.csv"
+    )
+
+    df = pd.DataFrame(rows).sort_values("n_positives")
+    df.to_csv(out_csv, index=False)
+
+    print(f"✓ Wrote grouped statistics CSV: {out_csv}")
