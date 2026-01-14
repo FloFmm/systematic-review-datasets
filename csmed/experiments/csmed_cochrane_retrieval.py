@@ -116,10 +116,21 @@ def build_global_corpus(dataset):
                 for doc in review_data["data"][split_name]:
                     doc_id = doc["pmid"]
                     if doc_id not in doc_dict:
-                        doc_dict[doc_id] = doc["title"] + "\n\n" + doc["abstract"] + "\n\n" + " ".join(doc["mesh_terms"])
+                        text = doc["title"] + "\n\n" + doc["abstract"] + "\n\n" + " ".join(doc["mesh_terms"])
+                        doc_dict[doc_id] = {
+                            "text": text,
+                            "title": doc["title"],
+                            "abstract": doc["abstract"],
+                            "mesh_terms": doc["mesh_terms"],
+                        }
 
     # Convert to list of dicts for retriever
-    collection = [{"id": doc_id, "text": text} for doc_id, text in doc_dict.items()]
+    collection = [{"id": doc_id, 
+                   "text": data["text"], 
+                   "title": data["title"],
+                   "abstract": data["abstract"],
+                   "mesh_terms": data["mesh_terms"]
+                   } for doc_id, data in doc_dict.items()]
     # collection = collection[:1001]
     return collection
 
