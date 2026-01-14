@@ -237,16 +237,15 @@ def evaluate_model_by_positive_count(
     run_dict = load_run_dict_for_model(model_name, query_type, total_docs, rankings_base_path)
     os.makedirs(output_dir, exist_ok=True)
 
+    positions = list(range(1, 11)) + list(range(15, 51, 5)) + list(range(25, 201, 10)) + list(range(250, 501, 50)) + list(range(600, 2001, 100))+ list(range(2200, 5001, 200))
     RANX_METRICS = [
         "ndcg", "ndcg@5", "ndcg@10", "ndcg@100",
         "map", "map@10", "map@100",
-        "recall", "recall@1", "recall@2", "recall@3", "recall@5", "recall@10", "recall@20", "recall@50", "recall@75", "recall@100", 
-        "recall@200", "recall@300", "recall@400", "recall@500", "recall@750", "recall@1000", "recall@1500", "recall@2000",
-        "precision", "precision@10", "precision@50", "precision@100", "precision@1000",
+        "recall",
         "f1", "f1@10", "f1@50", "f1@100",
         "r-precision",
         "mrr@100",
-    ]
+    ] + [f"recall@{k}" for k in positions] + [f"precision@{k}" for k in positions]
 
     # --------------------------------------------------
     # group queries by number of positives
