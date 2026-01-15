@@ -20,6 +20,7 @@ import datasets
 
 from csmed.loader.bigbiohub import Tasks
 from csmed.loader.bigbiohub import text_features
+# from csmed.csmed_cochrane.prepare_dataset import prepare_dataset
 
 TRAIN_REVIEWS = [
     "CD010206",
@@ -690,6 +691,10 @@ class CSMeDCochrane:
                     trust_remote_code = True,
                 )
                 if not os.path.exists(details_file):
+                    # prepare_dataset(
+                    #     review_id=review_name, output_data_path=f"{path}/{dataset_name}"
+                    # )
+                    # print("prepared review", review_name)
                     print(f"File '{details_file}' does not exist. Skipping.")
                     continue
                 
