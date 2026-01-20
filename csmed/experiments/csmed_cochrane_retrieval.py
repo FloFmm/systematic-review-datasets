@@ -22,7 +22,7 @@ from retriv import SparseRetriever
 os.environ["RETRIV_BASE_PATH"] = "../systematic-review-datasets/data/indexes" # has to be down here
 SEED = 42
 USE_GPU = True
-QUERY_TYPES =  ["title", "abstract"]#, "query", "criteria"]
+QUERY_TYPES =  ["title_abstract", "title", "abstract"]#, "query", "criteria"]
 
 # Initialize seed for reproducibility
 torch.manual_seed(SEED)
@@ -87,6 +87,7 @@ def extract_review_details(review_data):
     review_details = {
         "title": review_data["dataset_details"]["title"],
         "abstract": review_data["dataset_details"]["abstract"],
+        "title_abstract": review_data["dataset_details"]["abstract"] + "\n\n" + review_data["dataset_details"]["abstract"],
         "criteria": " ".join(
             [f"{k}: {v}" for k, v in review_data["dataset_details"]["criteria"].items()]
         ),
@@ -163,10 +164,10 @@ def process_review(
 if __name__ == "__main__":
     set_seed(SEED)
     retriever_configs = {
-        # "bm25": {
-        #     "type": "sparse",
-        #     "model": "bm25",
-        # },
+        "bm25": { #TODO does this one work?
+            "type": "sparse",
+            "model": "bm25",
+        },
         # "tf-idf": {
         #     "type": "sparse",
         #     "model": "tf-idf",
@@ -175,23 +176,23 @@ if __name__ == "__main__":
             "type": "dense",
             "model": "ncbi/MedCPT-Article-Encoder",
             "query_model": "ncbi/MedCPT-Query-Encoder",
-            "max_length": 256,
+            "max_length": 512, # was before 256
         },
-        "MedCPT-Doc-Enc-Only": {
-            "type": "dense",
-            "model": "ncbi/MedCPT-Article-Encoder",
-            "max_length": 256,
-        },
-        "MiniLM-128": {
-            "type": "dense",
-            "model": "sentence-transformers/all-MiniLM-L6-v2",
-            "max_length": 128,
-        },
-        # "MiniLM-256": {
+        # "MedCPT-Doc-Enc-Only": {
         #     "type": "dense",
-        #     "model": "sentence-transformers/all-MiniLM-L6-v2",
+        #     "model": "ncbi/MedCPT-Article-Encoder",
         #     "max_length": 256,
         # },
+        # "MiniLM-128": {
+        #     "type": "dense",
+        #     "model": "sentence-transformers/all-MiniLM-L6-v2",
+        #     "max_length": 128,
+        # },
+        "MiniLM-512": {
+            "type": "dense",
+            "model": "sentence-transformers/all-MiniLM-L6-v2",
+            "max_length": 512, # was before 256
+        },
         # "qa-MiniLM-512": {
         #     "type": "dense",
         #     "model": "sentence-transformers/multi-qa-MiniLM-L6-cos-v1",
@@ -212,21 +213,26 @@ if __name__ == "__main__":
             "model": "pritamdeka/BioBERT-mnli-snli-scinli-scitail-mednli-stsb",
             "max_length": 512,
         },
-        "S-BioBert": {
-            "type": "dense",
-            "model": "pritamdeka/S-BioBert-snli-multinli-stsb",
-            "max_length": 512,
-        },
+        # "S-BioBert": {
+        #     "type": "dense",
+        #     "model": "pritamdeka/S-BioBert-snli-multinli-stsb",
+        #     "max_length": 512,
+        # },
         "pubmedbert": {
             "type": "dense",
             "model": "pritamdeka/S-PubMedBert-MS-MARCO",
             "max_length": 512,
         },
-        # "roberta": {
-        #     "type": "dense",
-        #     "model": "sentence-transformers/stsb-roberta-base-v2",
-        #     "max_length": 512,
-        # },
+        "roberta": {
+            "type": "dense",
+            "model": "sentence-transformers/stsb-roberta-base-v2",
+            "max_length": 512,
+        },
+        "biolinkbert": { #TODO does this work. is it a real model?
+            "type": "dense",
+            "model": "microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext",  # example BioLinkBERT HF model
+            "max_length": 512,
+        }
     }
 
     dataset = load_dataset()
@@ -246,6 +252,7 @@ if __name__ == "__main__":
     global_corpus = build_global_corpus(dataset)
     
     total_docs = len(global_corpus)
+    assert total_docs > 500000 #TODO remove
     for split, reviews in dataset.items():
         print(f"\n=== Split: {split} ===")
         print(f"Number of reviews: {len(reviews)}")
