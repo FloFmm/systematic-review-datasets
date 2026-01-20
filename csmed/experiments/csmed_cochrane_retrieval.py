@@ -164,7 +164,12 @@ def process_review(
 if __name__ == "__main__":
     set_seed(SEED)
     retriever_configs = {
-        "bm25": { #TODO does this one work?
+        "biolinkbert": { #TODO does this work. is it a real model?
+            "type": "dense",
+            "model": "michiyasunaga/BioLinkBERT-large",  # example BioLinkBERT HF model
+            "max_length": 512,
+        },
+        "bm25": { 
             "type": "sparse",
             "model": "bm25",
         },
@@ -228,11 +233,6 @@ if __name__ == "__main__":
             "model": "sentence-transformers/stsb-roberta-base-v2",
             "max_length": 512,
         },
-        "biolinkbert": { #TODO does this work. is it a real model?
-            "type": "dense",
-            "model": "microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext",  # example BioLinkBERT HF model
-            "max_length": 512,
-        }
     }
 
     dataset = load_dataset()
@@ -248,11 +248,10 @@ if __name__ == "__main__":
 
     # dataset = mini_dataset
     # mini dataset
-    eval_reviews = dataset["EVAL"]
+    eval_reviews = dataset["EVAL"] | dataset["TRAIN"]
     global_corpus = build_global_corpus(dataset)
     
     total_docs = len(global_corpus)
-    assert total_docs > 500000 #TODO remove
     for split, reviews in dataset.items():
         print(f"\n=== Split: {split} ===")
         print(f"Number of reviews: {len(reviews)}")
