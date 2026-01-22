@@ -164,25 +164,45 @@ def process_review(
 if __name__ == "__main__":
     set_seed(SEED)
     retriever_configs = {
-        "biolinkbert": { #TODO does this work. is it a real model?
-            "type": "dense",
-            "model": "michiyasunaga/BioLinkBERT-large",  # example BioLinkBERT HF model
-            "max_length": 512,
-        },
-        "bm25": { 
+        "bm25": {
             "type": "sparse",
             "model": "bm25",
         },
-        # "tf-idf": {
-        #     "type": "sparse",
-        #     "model": "tf-idf",
-        # },
+        "biolinkbert": {
+            "type": "dense",
+            "model": "kamalkraj/BioSimCSE-BioLinkBERT-BASE", #"michiyasunaga/BioLinkBERT-large", <- not for dense retrieval
+            "max_length": 512,
+        }, 
+        "pubmedbert": {
+            "type": "dense",
+            "model": "pritamdeka/S-PubMedBert-MS-MARCO",
+            "max_length": 512,
+        },
+        "roberta": {
+            "type": "dense",
+            "model": "sentence-transformers/stsb-roberta-base-v2",
+            "max_length": 512,
+        },
         "MedCPT": {
             "type": "dense",
             "model": "ncbi/MedCPT-Article-Encoder",
             "query_model": "ncbi/MedCPT-Query-Encoder",
             "max_length": 512, # was before 256
         },
+        "MiniLM-512": {
+            "type": "dense",
+            "model": "sentence-transformers/all-MiniLM-L6-v2",
+            "max_length": 512, # was before 256
+        },
+        "biobert-nli": {
+            "type": "dense",
+            "model": "pritamdeka/BioBERT-mnli-snli-scinli-scitail-mednli-stsb",
+            "max_length": 512,
+        },
+        # "tf-idf": {
+        #     "type": "sparse",
+        #     "model": "tf-idf",
+        # },
         # "MedCPT-Doc-Enc-Only": {
         #     "type": "dense",
         #     "model": "ncbi/MedCPT-Article-Encoder",
@@ -193,11 +213,6 @@ if __name__ == "__main__":
         #     "model": "sentence-transformers/all-MiniLM-L6-v2",
         #     "max_length": 128,
         # },
-        "MiniLM-512": {
-            "type": "dense",
-            "model": "sentence-transformers/all-MiniLM-L6-v2",
-            "max_length": 512, # was before 256
-        },
         # "qa-MiniLM-512": {
         #     "type": "dense",
         #     "model": "sentence-transformers/multi-qa-MiniLM-L6-cos-v1",
@@ -213,26 +228,11 @@ if __name__ == "__main__":
         #     "model": "sentence-transformers/nli-mpnet-base-v2",
         #     "max_length": 512,
         # },
-        "biobert-nli": {
-            "type": "dense",
-            "model": "pritamdeka/BioBERT-mnli-snli-scinli-scitail-mednli-stsb",
-            "max_length": 512,
-        },
         # "S-BioBert": {
         #     "type": "dense",
         #     "model": "pritamdeka/S-BioBert-snli-multinli-stsb",
         #     "max_length": 512,
         # },
-        "pubmedbert": {
-            "type": "dense",
-            "model": "pritamdeka/S-PubMedBert-MS-MARCO",
-            "max_length": 512,
-        },
-        "roberta": {
-            "type": "dense",
-            "model": "sentence-transformers/stsb-roberta-base-v2",
-            "max_length": 512,
-        },
     }
 
     dataset = load_dataset()
