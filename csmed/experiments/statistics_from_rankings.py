@@ -2,8 +2,8 @@ import numpy as np
 from csmed.experiments.measures import evaluate_model_by_positive_count
 from csmed.experiments.csmed_cochrane_retrieval import load_dataset
 SEED = 42
-QUERY_TYPES =  ["title", "abstract"]#, "query", "criteria"]
-TOTAL_DOCS = 433660
+QUERY_TYPES =  ["title_abstract"]#, "title", "abstract"]#, "query", "criteria"]
+TOTAL_DOCS = 503679
 if __name__ == "__main__":
     np.random.seed(SEED)
     retriever_configs = {
@@ -86,7 +86,7 @@ if __name__ == "__main__":
 
     # dataset = mini_dataset
     # mini dataset
-    eval_reviews = dataset["EVAL"]
+    eval_reviews = dataset["EVAL"] | dataset["TRAIN"]
     
     total_docs = TOTAL_DOCS
     for split, reviews in dataset.items():
