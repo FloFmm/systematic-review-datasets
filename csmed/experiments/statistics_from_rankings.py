@@ -1,6 +1,6 @@
 import numpy as np
 from csmed.experiments.measures import evaluate_model_by_positive_count
-from csmed.experiments.csmed_cochrane_retrieval import load_dataset
+from csmed.experiments.csmed_cochrane_retrieval import load_dataset, get_positives
 SEED = 42
 QUERY_TYPES =  ["title_abstract"]#, "title", "abstract"]#, "query", "criteria"]
 TOTAL_DOCS = 503679
@@ -99,10 +99,12 @@ if __name__ == "__main__":
         qrels_dict = {}
         
         for index, (review_name, review_data) in enumerate(eval_reviews.items(), start=1):
-            qrels = {
-                doc["pmid"]: int(doc["label"])
-                for doc in review_data["data"]["train"]
-            }
+            positives = get_positives(review_id=review_name, dataset=dataset)
+            # qrels = {
+            #     doc["pmid"]: int(doc["label"])
+            #     for doc in review_data["data"]["train"] #only using train
+            # }
+            qrels = {pmid: 1 for pmid in positives}
 
             qrels_dict[review_name] = qrels
 

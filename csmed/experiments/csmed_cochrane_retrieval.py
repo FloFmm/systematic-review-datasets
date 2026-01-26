@@ -1,6 +1,7 @@
 import os
+
 CUSTOM_HF_PATH = "../systematic-review-datasets/data/huggingface"
-os.environ["HF_HOME"] = CUSTOM_HF_PATH # has to be up here
+os.environ["HF_HOME"] = CUSTOM_HF_PATH  # has to be up here
 
 import os.path
 import pickle
@@ -19,16 +20,17 @@ from csmed.experiments.modified_dense_retriever import ModifiedDenseRetriever
 from retriv import SparseRetriever
 
 # Constants
-os.environ["RETRIV_BASE_PATH"] = "../systematic-review-datasets/data/indexes" # has to be down here
+os.environ["RETRIV_BASE_PATH"] = (
+    "../systematic-review-datasets/data/indexes"  # has to be down here
+)
 SEED = 42
 USE_GPU = True
-QUERY_TYPES =  ["title_abstract", "title", "abstract"]#, "query", "criteria"]
+QUERY_TYPES = ["title_abstract", "title", "abstract"]  # , "query", "criteria"]
 
 # Initialize seed for reproducibility
 torch.manual_seed(SEED)
 random.seed(SEED)
 np.random.seed(SEED)
-
 
 
 @njit
@@ -42,11 +44,26 @@ def load_dataset():
         base_path="../systematic-review-datasets/csmed/csmed_cochrane"
     )
 
+def get_positives(review_id, dataset):
+    positives = set()
+    if review_id in dataset["EVAL"]:
+        reviews = dataset["EVAL"]
+    else:
+        reviews = dataset["TRAIN"]
+    for split_name, data in reviews[review_id][
+        "data"
+    ].items():  # 'train', 'val', 'test' etc.
+        for doc in data:
+            if int(doc["label"]) == 1:
+                positives.add(str(doc["pmid"]))
+    return positives
 
 def create_retriever(name, conf, collection):
     index_name = f"{name}_{conf['type']}_index_docs={len(collection)}"
     if conf["type"] == "sparse":
-        if os.path.exists(f"{os.environ['RETRIV_BASE_PATH']}/collections/{index_name}/dr_state.npz"):
+        if os.path.exists(
+            f"{os.environ['RETRIV_BASE_PATH']}/collections/{index_name}/dr_state.npz"
+        ):
             print(f"Loading existing index: {index_name}")
             retriever = SparseRetriever.load(index_name)
 
@@ -66,20 +83,24 @@ def create_retriever(name, conf, collection):
             )
             retriever.index(collection)
     elif conf["type"] == "dense":
-        if os.path.exists(f"{os.environ['RETRIV_BASE_PATH']}/collections/{index_name}/dr_state.npz"):
+        if os.path.exists(
+            f"{os.environ['RETRIV_BASE_PATH']}/collections/{index_name}/dr_state.npz"
+        ):
             print(f"Loading existing index: {index_name}")
             retriever = ModifiedDenseRetriever.load(index_name)
         else:
             retriever = ModifiedDenseRetriever(
                 index_name=index_name,
                 model=conf["model"],
-                query_model=conf["query_model"] if "query_model" in conf and conf["query_model"] != conf["model"] else None,
+                query_model=conf["query_model"]
+                if "query_model" in conf and conf["query_model"] != conf["model"]
+                else None,
                 normalize=True,
                 max_length=conf["max_length"],
                 use_ann=False,
             )
             retriever.index(collection, use_gpu=USE_GPU, batch_size=128)
-            
+
     return retriever
 
 
@@ -87,7 +108,9 @@ def extract_review_details(review_data):
     review_details = {
         "title": review_data["dataset_details"]["title"],
         "abstract": review_data["dataset_details"]["abstract"],
-        "title_abstract": review_data["dataset_details"]["abstract"] + "\n\n" + review_data["dataset_details"]["abstract"],
+        "title_abstract": review_data["dataset_details"]["abstract"]
+        + "\n\n"
+        + review_data["dataset_details"]["abstract"],
         "criteria": " ".join(
             [f"{k}: {v}" for k, v in review_data["dataset_details"]["criteria"].items()]
         ),
@@ -117,7 +140,13 @@ def build_global_corpus(dataset):
                 for doc in review_data["data"][split_name]:
                     doc_id = doc["pmid"]
                     if doc_id not in doc_dict:
-                        text = doc["title"] + "\n\n" + doc["abstract"] + "\n\n" + " ".join(doc["mesh_terms"])
+                        text = (
+                            doc["title"]
+                            + "\n\n"
+                            + doc["abstract"]
+                            + "\n\n"
+                            + " ".join(doc["mesh_terms"])
+                        )
                         doc_dict[doc_id] = {
                             "text": text,
                             "title": doc["title"],
@@ -126,12 +155,16 @@ def build_global_corpus(dataset):
                         }
 
     # Convert to list of dicts for retriever
-    collection = [{"id": doc_id, 
-                   "text": data["text"], 
-                   "title": data["title"],
-                   "abstract": data["abstract"],
-                   "mesh_terms": data["mesh_terms"]
-                   } for doc_id, data in doc_dict.items()]
+    collection = [
+        {
+            "id": doc_id,
+            "text": data["text"],
+            "title": data["title"],
+            "abstract": data["abstract"],
+            "mesh_terms": data["mesh_terms"],
+        }
+        for doc_id, data in doc_dict.items()
+    ]
     # collection = collection[:1001]
     return collection
 
@@ -148,10 +181,10 @@ def process_review(
     for query_type, query in review_details.items():
         if query_type not in QUERY_TYPES:
             continue
-        
+
         ranking = retriever.search(
             query=query, cutoff=cutoff, return_docs=False
-        ) # returns (doc_ids, score) pairs
+        )  # returns (doc_ids, score) pairs
         base_dir = f"../systematic-review-datasets/data/rankings/{model_name}/{query_type}/docs={total_docs}"
         os.makedirs(base_dir, exist_ok=True)
         doc_ids = np.array(list(ranking.keys()), dtype="U64")
@@ -170,9 +203,9 @@ if __name__ == "__main__":
         },
         "biolinkbert": {
             "type": "dense",
-            "model": "kamalkraj/BioSimCSE-BioLinkBERT-BASE", #"michiyasunaga/BioLinkBERT-large", <- not for dense retrieval
+            "model": "kamalkraj/BioSimCSE-BioLinkBERT-BASE",  # "michiyasunaga/BioLinkBERT-large", <- not for dense retrieval
             "max_length": 512,
-        }, 
+        },
         "pubmedbert": {
             "type": "dense",
             "model": "pritamdeka/S-PubMedBert-MS-MARCO",
@@ -187,12 +220,12 @@ if __name__ == "__main__":
             "type": "dense",
             "model": "ncbi/MedCPT-Article-Encoder",
             "query_model": "ncbi/MedCPT-Query-Encoder",
-            "max_length": 512, # was before 256
+            "max_length": 512,  # was before 256
         },
         "MiniLM-512": {
             "type": "dense",
             "model": "sentence-transformers/all-MiniLM-L6-v2",
-            "max_length": 512, # was before 256
+            "max_length": 512,  # was before 256
         },
         "biobert-nli": {
             "type": "dense",
@@ -250,7 +283,7 @@ if __name__ == "__main__":
     # mini dataset
     eval_reviews = dataset["EVAL"] | dataset["TRAIN"]
     global_corpus = build_global_corpus(dataset)
-    
+
     total_docs = len(global_corpus)
     for split, reviews in dataset.items():
         print(f"\n=== Split: {split} ===")
@@ -261,12 +294,16 @@ if __name__ == "__main__":
         retriever = create_retriever(name, conf, collection=global_corpus)
 
         qrels_dict = {}
-        
-        for index, (review_name, review_data) in enumerate(eval_reviews.items(), start=1):
-            qrels = {
-                doc["pmid"]: int(doc["label"])
-                for doc in review_data["data"]["train"]
-            }
+
+        for index, (review_name, review_data) in enumerate(
+            eval_reviews.items(), start=1
+        ):
+            positives = get_positives(review_id=review_name, dataset=dataset)
+            # qrels = {
+            #     doc["pmid"]: int(doc["label"])
+            #     for doc in review_data["data"]["train"] # only uses train
+            # }
+            qrels = {pmid: 1 for pmid in positives}
 
             qrels_dict[review_name] = qrels
 
@@ -284,8 +321,6 @@ if __name__ == "__main__":
                 query_type=query_type,
                 total_docs=total_docs,
                 qrels_dict=qrels_dict,
-                output_dir = "../boolean-query-generation/data/reports/title_and_abstract",
-                rankings_base_path = "../systematic-review-datasets/data/rankings"
+                output_dir="../boolean-query-generation/data/reports/title_and_abstract",
+                rankings_base_path="../systematic-review-datasets/data/rankings",
             )
-
-
