@@ -237,7 +237,7 @@ def evaluate_model_by_positive_count(
     run_dict = load_run_dict_for_model(model_name, query_type, total_docs, rankings_base_path)
     os.makedirs(output_dir, exist_ok=True)
 
-    positions = list(range(1, 11)) + list(range(15, 51, 5)) + list(range(25, 201, 10)) + list(range(250, 501, 50)) + list(range(600, 2001, 100))+ list(range(2200, 5001, 200))
+    positions = list(range(1, 11)) + list(range(15, 51, 5)) + list(range(25, 201, 10)) + list(range(250, 501, 50)) + list(range(600, 2001, 100))+ list(range(2200, 5001, 200)) + list(range(5500, 10001, 500))
     RANX_METRICS = [
         "ndcg", "ndcg@5", "ndcg@10", "ndcg@100",
         "map", "map@10", "map@100",
